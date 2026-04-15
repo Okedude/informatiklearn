@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Period Expired</title>
+    <title>Archived Access</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
@@ -25,69 +25,66 @@
 
         .container {
             padding: 2rem;
-            max-width: 500px;
-        }
-
-        .icon-circle {
-            width: 80px;
-            height: 80px;
-            background: #dfe6e9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            position: relative;
-        }
-
-        .pulse {
-            width: 20px;
-            height: 20px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            animation: pulse-animation 2s infinite;
-        }
-
-        @keyframes pulse-animation {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(9, 132, 227, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(9, 132, 227, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(9, 132, 227, 0); }
-        }
-
-        h1 { font-size: 1.8rem; margin-bottom: 1rem; }
-        p { line-height: 1.6; color: #636e72; }
-
-        .link-box {
-            margin-top: 2rem;
-            padding: 1rem;
-            border: 1px solid #dcdde1;
-            border-radius: 8px;
+            max-width: 400px;
             background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
-        a {
-            color: var(--accent-color);
-            text-decoration: none;
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        p { color: #636e72; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #dfe6e9;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
             font-weight: bold;
+            margin-top: 10px;
         }
 
-        a:hover { text-decoration: underline; }
+        button:hover { opacity: 0.9; }
+        #error { color: #d63031; font-size: 0.8rem; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="icon-circle">
-            <div class="pulse"></div>
-        </div>
-        <h1>Session Expired</h1>
-        <p>This site is about an exam that has already passed. Access to this specific portal is no longer active.</p>
+        <h1>Exam Archive</h1>
+        <p>This exam has passed. Enter credentials to view the archive.</p>
         
-        <div class="link-box">
-            Please refer to the archive here:<br>
-            <a href="https://okedude.github.io/iearchive01">okedude.github.io/iearchive01</a>
-        </div>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        
+        <button onclick="checkLogin()">Access Archive</button>
+        <p id="error">Invalid credentials. Please try again.</p>
     </div>
+
+    <script>
+        function checkLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const error = document.getElementById('error');
+
+            if (user === "access" && pass === "apwinf26") {
+                window.location.href = "https://okedude.github.io/iearchive01";
+            } else {
+                error.style.display = "block";
+            }
+        }
+    </script>
 
 </body>
 </html>
