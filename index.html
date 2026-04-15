@@ -3,54 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Archive</title>
+    <title>Exam Archive Access</title>
     <style>
-        :root { --bg: #f4f7f6; --accent: #0984e3; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; height: 100vh; margin: 0; align-items: center; justify-content: center; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #status { color: #d63031; font-size: 0.85rem; margin-top: 10px; min-height: 1.2rem; }
+        :root {
+            --bg: #f8f9fa;
+            --primary: #2d3436;
+            --accent: #0984e3;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 340px;
+            text-align: center;
+        }
+
+        h2 {
+            margin: 0 0 0.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        p {
+            color: #636e72;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #msg {
+            color: #d63031;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            min-height: 1.2rem;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Archive Access</h2>
-    <p style="font-size: 0.9rem; color: #636e72;">The exam has concluded. Enter the access key to view archives.</p>
-    <input type="password" id="pw" placeholder="Enter Password">
-    <button onclick="unlock()">Unlock</button>
-    <div id="status"></div>
-</div>
+    <div class="card">
+        <h2>Secure Gateway</h2>
+        <p>The exam session has ended. Enter credentials to view the archive.</p>
+        <input type="text" id="user" placeholder="Username" autocomplete="off">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="unlock()">Verify & Enter</button>
+        <div id="msg"></div>
+    </div>
 
-<script>
-    // This array contains the "difference" between your password characters 
-    // and the URL characters. Without the password, these numbers are useless.
-    const enc = [7,12,11,11,5,15,53,62,56,1,5,10,13,12,4,11,62,1,1,10,8,11,2,62,9,15,52,9,5,1,18,3,8,9,22,5,4,48,49];
+    <script>
+        const hexData = "f708d90d35ac23e18021be203eeeb9dec1404555d9f2ca874a6601c94b28449b2fa316db3275fb7ac3b26c958042f2ea23c5b659f46fe7eb469d89f247fad3feb2e63e1b29c5b4d25510dbc0ef936f1121";
 
-    function unlock() {
-        const p = document.getElementById('pw').value;
-        const s = document.getElementById('status');
-        
-        if (p.length === 0) return;
+        async function unlock() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const m = document.getElementById('msg');
 
-        let r = "";
-        for (let i = 0; i < enc.length; i++) {
-            // It takes the character code of the password (looping) 
-            // and adds the 'enc' value to reconstruct the URL.
-            r += String.fromCharCode(p.charCodeAt(i % p.length) + enc[i]);
+            if (u !== "access") { 
+                m.innerText = "Invalid credentials."; 
+                return; 
+            }
+
+            try {
+                const data = new Uint8Array(hexData.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const salt = data.slice(0, 16);
+                const iv = data.slice(16, 28);
+                const encrypted = data.slice(28);
+
+                const baseKey = await crypto.subtle.importKey("raw", new TextEncoder().encode(p), "PBKDF2", false, ["deriveKey"]);
+                const key = await crypto.subtle.deriveKey(
+                    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+                    baseKey,
+                    { name: "AES-GCM", length: 256 },
+                    false, ["decrypt"]
+                );
+
+                const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted);
+                const url = new TextDecoder().decode(decrypted);
+
+                m.style.color = "#00b894";
+                m.innerText = "Success! Redirecting...";
+                window.location.href = url;
+            } catch (e) {
+                m.innerText = "Invalid credentials.";
+            }
         }
-
-        // The code only redirects if the math results in a valid URL prefix.
-        if (r.startsWith("https://")) {
-            s.style.color = "#00b894";
-            s.innerText = "Access Granted.";
-            window.location.href = r;
-        } else {
-            s.innerText = "Invalid credentials.";
-        }
-    }
-</script>
-
+    </script>
 </body>
 </html>
